@@ -1,0 +1,4 @@
+
+*.pyc
+diff_modifiers.txt
+__pycache__

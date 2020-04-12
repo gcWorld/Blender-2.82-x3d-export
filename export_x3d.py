@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-# Contributors: bart:neeneenee*de, http://www.neeneenee.de/vrml, Campbell Barton
+# Contributors: bart:neeneenee*de, http://www.neeneenee.de/vrml, Campbell Barton, Jonas Elbers
 
 """
 This script exports to X3D format.
@@ -30,7 +30,8 @@ want to export only selected or all relevant objects.
 Known issues:
     Doesn't handle multiple materials (don't use material indices);<br>
     Doesn't handle multiple UV textures on a single mesh (create a mesh for each texture);<br>
-    Can't get the texture array associated with material * not the UV ones;
+    Can't get the texture array associated with material * not the UV ones;<br>
+    Texture repeat and rotation not currently handeled;
 """
 
 import math
@@ -40,6 +41,7 @@ import bpy
 import mathutils
 
 from bpy_extras.io_utils import create_derived_objects, free_derived_objects
+from bpy_extras import node_shader_utils
 
 
 # h3d defines
@@ -545,17 +547,15 @@ def export(file,
             mesh_material_images = [None] * len(mesh_materials)
 
             for i, material in enumerate(mesh_materials):
-                if 0 and material:
-                    for mtex in material.texture_slots:
-                        if mtex:
-                            tex = mtex.texture
-                            if tex and tex.type == 'IMAGE':
-                                image = tex.image
-                                if image:
-                                    mesh_material_tex[i] = tex
-                                    mesh_material_mtex[i] = mtex
-                                    mesh_material_images[i] = image
-                                    break
+                if material.use_nodes:
+                    ma_wrap = node_shader_utils.PrincipledBSDFWrapper(material)
+                    ma_tex = ma_wrap.base_color_texture
+                    if ma_tex and ma_tex.image:
+                        print(dir(ma_tex.image))
+                        mesh_material_tex[i] = ma_tex #this is most likely wrong
+                        mesh_material_mtex[i] = ma_tex #works
+                        mesh_material_images[i] = ma_tex.image #works
+                        break
 
             # fast access!
             mesh_vertices = mesh.vertices[:]
@@ -655,20 +655,20 @@ def export(file,
                         writeImageTexture(ident, image)
 
                         # transform by mtex
-                        loc = mesh_material_mtex[material_index].offset[:2]
+                        loc = mesh_material_mtex[material_index].translation[:2]
 
                         # mtex_scale * tex_repeat
                         sca_x, sca_y = mesh_material_mtex[material_index].scale[:2]
 
-                        sca_x *= mesh_material_tex[material_index].repeat_x
-                        sca_y *= mesh_material_tex[material_index].repeat_y
+                        #sca_x *= mesh_material_tex[material_index].repeat_x
+                        #sca_y *= mesh_material_tex[material_index].repeat_y
 
                         # flip x/y is a sampling feature, convert to transform
-                        if mesh_material_tex[material_index].use_flip_axis:
-                            rot = math.pi / -2.0
-                            sca_x, sca_y = sca_y, -sca_x
-                        else:
-                            rot = 0.0
+                        #if mesh_material_tex[material_index].use_flip_axis:
+                        #    rot = math.pi / -2.0
+                        #    sca_x, sca_y = sca_y, -sca_x
+                        #else:
+                        rot = 0.0
 
                         ident_step = ident + (' ' * (-len(ident) + \
                         fw('%s<TextureTransform ' % ident)))
