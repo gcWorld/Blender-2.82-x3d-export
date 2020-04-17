@@ -9,6 +9,9 @@
   
 3. Blender (neu) starten
 
+## Blender Material
+![Alt](https://img.gcmods.de/media/small/Blender/blenderx3d.PNG)
+
 ## Fehler / Probleme
 Fehler und Probleme nach Möglichkeit hier eintragen oder direkt an mich:
 
