@@ -2,3 +2,5 @@
 *.pyc
 diff_modifiers.txt
 __pycache__
+import_x3d.py
+__init__.py
